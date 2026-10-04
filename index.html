@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Catalemmings</title>
+<meta name="description" content="Guia la colla de catalemmings fins a l'estelada amb ponts, castells, calçots i cassolades.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Pixelify+Sans:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+<div class="app">
+  <header class="cap">
+    <div class="marca">
+      <canvas id="logo" width="18" height="12" aria-hidden="true"></canvas>
+      <h1>Catalemmings</h1>
+    </div>
+    <p class="nivell-actual" id="nivellNom">Nivell 1</p>
+    <div class="cap-botons">
+      <button type="button" id="btnNivells" class="boto-pla">Nivells</button>
+      <button type="button" id="btnEditor" class="boto-pla" aria-pressed="false">Editor</button>
+      <button type="button" id="btnSo" class="boto-pla" aria-pressed="true">So: sí</button>
+    </div>
+  </header>
+
+  <section class="escenari" id="escenari" aria-label="Escenari del joc">
+    <div class="scroll" id="scroll">
+      <canvas id="joc" aria-label="Nivell del joc. Clica un catalemming per donar-li l'habilitat triada."></canvas>
+    </div>
+    <div class="capa" id="capa" hidden></div>
+  </section>
+
+  <section class="editor" id="editor" aria-label="Editor de nivells"></section>
+
+  <div class="marcador" id="marcador">
+    <div class="xifra"><span class="etiqueta">Fora</span><span class="valor" id="vFora">0/0</span></div>
+    <div class="xifra"><span class="etiqueta">A dins</span><span class="valor" id="vDins">0</span></div>
+    <div class="xifra lliures">
+      <span class="etiqueta">Lliures</span>
+      <span class="valor" id="vLliures">0</span>
+      <span class="barra" aria-hidden="true"><span id="barraLliures"></span><i id="marcaCal"></i></span>
+    </div>
+    <div class="xifra"><span class="etiqueta">Enfadats</span><span class="valor enfadats" id="vEnfadats">0</span></div>
+    <div class="xifra"><span class="etiqueta">Temps</span><span class="valor" id="vTemps">0:00</span></div>
+  </div>
+
+  <div class="habilitats" id="habilitats" role="toolbar" aria-label="Habilitats"></div>
+
+  <div class="controls">
+    <div class="ritme" aria-label="Ritme de sortida">
+      <span class="etiqueta">Ritme</span>
+      <button type="button" id="ritmeMenys" class="boto-ritme" aria-label="Més lent">−</button>
+      <span class="valor" id="vRitme">30</span>
+      <button type="button" id="ritmeMes" class="boto-ritme" aria-label="Més ràpid">+</button>
+    </div>
+    <button type="button" id="btnPausa" class="boto-control" aria-pressed="false">Pausa <kbd>P</kbd></button>
+    <button type="button" id="btnRapid" class="boto-control" aria-pressed="false">Ràpid ×3 <kbd>F</kbd></button>
+    <button type="button" id="btnReinicia" class="boto-control">Reinicia <kbd>R</kbd></button>
+    <button type="button" id="btnRetirada" class="boto-control perill">Tots a casa</button>
+  </div>
+
+  <p class="estat" id="estat" aria-live="polite"></p>
+
+  <details class="ajuda">
+    <summary>Com es juga</summary>
+    <div class="ajuda-cos">
+      <p>Els catalemmings surten de casa i caminen sense parar. Tria una habilitat a la botonera i clica un catalemming per donar-li-la. Cada nivell en té un nombre limitat. Has de portar prou catalemmings fins a l'estelada: quan n'hi arriben els que calen, la bandera espanyola del teulat de casa cau a terra.</p>
+      <p>Ningú no s'hi fa mal: si un catalemming cau de massa alt, l'atrapen els antiavalots, el condemna el tribunal o el toca una pilota de goma, se'n torna a casa (o a l'hospital) i ja no compta.</p>
+      <ul class="obstacles">
+        <li><b>Barrancs</b> Si cau de més de cinc vegades la seva alçada, s'enfada. Si cau al buit, adeu.</li>
+        <li><b>Antiavalots</b> Patrullen d'un costat a l'altre. Tocar-los és acabar detingut. Una cassolada a prop els fa fugir.</li>
+        <li><b>Polítics</b> Dicten lleis que aixequen barreres. La colla s'hi gira. Una cassolada a prop el fa fugir i la barrera desapareix.</li>
+        <li><b>Tribunals</b> La maça baixa cada pocs segons. El terra de marbre no es pot foradar.</li>
+        <li><b>«Torneu a casa!»</b> Qui xoca amb aquest polític abaixa el cap i se'n torna. Una cassolada el fa fugir.</li>
+        <li><b>«Estructures d'estat!»</b> Aquest polític fa girar la colla. Un catalemming que hagi menjat calçots el fa fugir.</li>
+        <li><b>Rei a la trona</b> El pedestal on seu el rei fa de paret. Un pastís de nata a la cara el fa caure (i el pedestal desapareix); també s'hi pot passar per sobre amb un castell o per sota terra.</li>
+        <li><b>Escopeta</b> Un antiavalots dispara pilotes de goma a qui té a tret: qui en rep una va a l'hospital. Tarda a disparar la primera. Les pilotes s'aturen contra el terreny i els murs.</li>
+      </ul>
+      <p>Tecles: <kbd>1</kbd>–<kbd>9</kbd> i <kbd>0</kbd> habilitats, <kbd>P</kbd> pausa, <kbd>F</kbd> ràpid, <kbd>R</kbd> reinicia, <kbd>−</kbd>/<kbd>+</kbd> ritme.</p>
+    </div>
+  </details>
+</div>
+
+<script src="engine.js"></script>
+<script src="levels.js"></script>
+<script src="game.js"></script>
+<script src="editor.js"></script>
+</body>
+</html>

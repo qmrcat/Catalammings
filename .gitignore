@@ -1,0 +1,13 @@
+# notes personals
+els meus documents/
+
+# sistema i editors
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# per si algun dia hi ha dependències
+node_modules/
