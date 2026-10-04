@@ -441,7 +441,7 @@ h1 {
   gap: 10px;
   min-width: 0;
 }
-.quadre h3, .propis-menu h3 {
+.quadre h3, .cap-seccio h3 {
   font-family: var(--display);
   font-size: 18px;
   margin: 0;
@@ -503,19 +503,20 @@ textarea.codi { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; f
 .fila-propi .nom { font-family: var(--display); font-size: 18px; overflow-wrap: anywhere; }
 .fila-propi .detall { font-size: 13px; color: var(--boira); }
 .fila-propi .botons-fitxa { gap: 6px; }
-.propis-menu {
+.cap-seccio {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px 20px;
-  background: var(--panell-2);
-  border: 2px dashed var(--linia);
-  border-radius: 6px;
-  padding: 10px 14px;
+  gap: 8px 16px;
+  border-top: 2px dashed var(--linia);
+  padding-top: 10px;
 }
-.propis-menu .boto-gran { font-size: 16px; padding: 6px 14px; }
-.propis-menu p { color: var(--boira); }
+.cap-seccio .botons-fitxa { gap: 6px; }
+.llista-nivells .buit { grid-column: 1 / -1; margin: 0; color: var(--boira); }
+.boto-mig.fletxa { font-family: var(--text); font-size: 20px; font-weight: 700; line-height: 1; padding: 4px 12px; }
+.fila-propi.amagat { opacity: 0.55; border-style: dashed; }
+.fila-propi.amagat:focus-within { opacity: 1; }
 .tria-nou { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
 
 /* guia d'objectes de l'editor */

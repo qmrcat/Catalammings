@@ -51,6 +51,10 @@ També es pot publicar tal com és a GitHub Pages (*Settings → Pages → Deplo
 
 El botó **Editor** obre un editor complet: pinta terreny (terra, marbre, mur, pedra seca), col·loca la casa, l'estelada i els obstacles, ajusta les habilitats i prova el nivell. Els nivells es desen al navegador i es poden compartir amb un codi (`CATLEM1…`) amb **Exporta codi** / **Importa codi**.
 
+- **Desa com a còpia** guarda els canvis com un nivell nou i deixa l'original com estava.
+- **Els meus nivells** permet jugar, editar i esborrar els nivells desats. També surten al menú principal, sota els nivells del joc.
+- **Organitza**, al menú, canvia l'ordre dels nivells del joc i amaga els que no vulguis. Es desa al navegador; `levels.js` no canvia.
+
 Per afegir un nivell propi al joc, fes servir **Codi per a levels.js**: copia el bloc i enganxa'l al final de la llista `LEVELS` de `levels.js`.
 
 ## Estructura

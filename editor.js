@@ -588,6 +588,7 @@
       <div class="accions">
         <button type="button" class="boto-mig principal" id="edProva">Prova el nivell</button>
         <button type="button" class="boto-mig" id="edDesa">Desa</button>
+        <button type="button" class="boto-mig" id="edDesaCopia" title="Desa els canvis com un nivell nou i deixa l'original tal com estava">Desa com a còpia</button>
         <button type="button" class="boto-mig" id="edDesfes">Desfés</button>
         <button type="button" class="boto-mig" id="edNou">Nou</button>
         <button type="button" class="boto-mig" id="edLlista">Els meus nivells</button>
@@ -619,6 +620,7 @@
     $('#edMida').addEventListener('change', e => { ed.size = +e.target.value; });
     $('#edProva').addEventListener('click', playTest);
     $('#edDesa').addEventListener('click', save);
+    $('#edDesaCopia').addEventListener('click', saveCopy);
     $('#edDesfes').addEventListener('click', undo);
     $('#edNou').addEventListener('click', () => guardUnsaved(newDialog));
     $('#edLlista').addEventListener('click', () => openList());
@@ -891,6 +893,8 @@
     const where = store.mode === 'db' ? 'al teu compte' : 'en aquest navegador';
     const saved = ed.dirty ? (ed.id ? 'Hi ha canvis sense desar.' : 'Encara no s\'ha desat.') : (ed.id ? `Desat ${where}.` : '');
     el.innerHTML = `<b>${esc(ed.data.nom)}</b> · ${esc(saved)} ${esc(ed.msg || '')}`;
+    const bc = $('#edDesaCopia');
+    if (bc) bc.disabled = !ed.id;
     updateUndo();
   }
   function renderAll() {
@@ -924,6 +928,21 @@
       setMsg(e && e.message ? e.message : 'No s\'ha pogut desar. Torna-ho a provar d\'aquí a una estona.');
     }
     btn.disabled = false;
+  }
+  // desa l'estat actual com un nivell nou; l'original queda com estava l'últim cop que es va desar
+  async function saveCopy() {
+    if (!ed.id) return save();
+    const prevId = ed.id, prevNom = ed.data.nom;
+    ed.id = null;
+    if (!/\(còpia\)$/.test(prevNom)) ed.data.nom = prevNom.slice(0, 52) + ' (còpia)';
+    showName();
+    await save();
+    if (ed.dirty) { ed.id = prevId; ed.data.nom = prevNom; showName(); updateStatus(); return; }
+    setMsg('Desat com a còpia. L\'original queda tal com estava l\'últim cop que el vas desar.');
+  }
+  function showName() {
+    const f = $('#fNom'); if (f) f.value = ed.data.nom;
+    const h = $('#nivellNom'); if (h) h.textContent = 'Editor · ' + (ed.data.nom || 'Sense nom');
   }
   function markDraftClean() {
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ id: ed.id, dirty: false, data: serialize() })); } catch (e) { /* res */ }
@@ -1001,10 +1020,7 @@
     }).join('');
     $('#lLlista').querySelectorAll('.fila-propi').forEach(row => {
       const it = items.find(x => x.id === row.dataset.id);
-      row.querySelector('[data-a="juga"]').addEventListener('click', () => {
-        try { closeCapa(); A.playCustom(toPlayable(it, decodeMask(it.terreny)), 'propi'); }
-        catch (e) { showError('Aquest nivell té el terreny malmès i no es pot obrir.'); }
-      });
+      row.querySelector('[data-a="juga"]').addEventListener('click', () => playSaved(it));
       row.querySelector('[data-a="edita"]').addEventListener('click', () => guardUnsaved(() => {
         try { closeCapa(); open(true); loadInto(it, decodeMask(it.terreny), it.id); markDraftClean(); }
         catch (e) { showError('Aquest nivell té el terreny malmès i no es pot obrir.'); }
@@ -1020,6 +1036,16 @@
         } catch (e) { del.disabled = false; del.textContent = 'No s\'ha pogut esborrar'; }
       });
     });
+  }
+  function playSaved(it) {
+    try { closeCapa(); A.playCustom(toPlayable(it, decodeMask(it.terreny)), 'propi'); }
+    catch (e) { showError('Aquest nivell té el terreny malmès i no es pot obrir.'); }
+  }
+  // els nivells desats, del més recent al més antic
+  async function listLevels() {
+    const items = await store.list();
+    return items.map(it => Object.assign(normalize(it), { id: it.id, terreny: it.terreny, updated: it.updated }))
+      .sort((a, b) => (b.updated || 0) - (a.updated || 0));
   }
   function showError(t) {
     showCapa(`<p class="cella">Editor</p><h2>No es pot obrir</h2><p>${esc(t)}</p><div class="botons-fitxa"><button type="button" class="boto-gran" id="eTanca">D'acord</button></div>`);
@@ -1167,5 +1193,5 @@
     if (!silent) setMsg('Pinta el terreny, col·loca la casa, l\'estelada i els obstacles, i prova el nivell.');
   }
 
-  window.CatEditor = { open: () => open(false), openList, encodeMask, decodeMask, toPlayable, normalize, exportCode, importCode, levelsJsSnippet };
+  window.CatEditor = { open: () => open(false), openList, listLevels, play: playSaved, encodeMask, decodeMask, toPlayable, normalize, exportCode, importCode, levelsJsSnippet };
 })();

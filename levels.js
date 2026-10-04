@@ -180,6 +180,26 @@
       }
     },
     {
+      nom: "Tres d'octubre",
+      tema: "nit",
+      text: "Els polítics ens intenten enganyar, però aquesta vegada no els hi farem cas, ni han fet les estructures, ni tornarem a casa, menja calçots hi ha uns polítics que no els agrada, a uns altres no els agraden les cassolades, vigila les pilotes de goma.",
+      total: 12, needed: 7, rate: 30, time: 300,
+      skills: { calcots: 2, blocar: 2, pont: 2, mur: 2, picar: 2, cavar: 2, cassolada: 2 },
+      entrance: { x: 53, y: 199, dir: 1 },
+      exit: { x: 589, y: 283 },
+      speakers: [
+        { kind: "estructures", x0: 115, x1: 175, y: 211, speed: 0.3 },
+        { kind: "casa", x0: 483, x1: 543, y: 273, speed: 0.35 }
+      ],
+      shooters: [
+        { x: 388, y: 191, face: -1, range: 200, aimFirst: 90, period: 30 }
+      ],
+      kings: [
+        { x: 370, y: 240, w: 18, h: 34 }
+      ],
+      terreny: "02j1i.16.0hh.1d.0hc.1g.0h9.1k.0h7.1m.0h4.1p.0h2.1q.0h0.1t.0gy.1u.03y.11v.0b4.1w.03x.11w.0b2.1y.03w.127.0aq.110.03v.12d.0ai.1m.01.1g.03u.12f.0af.1n.02.1h.03s.12g.0ad.1p.01.1i.03r.12h.0aa.1r.01.1k.03p.12j.0a7.11f.03n.12m.0a2.11j.03l.12o.09y.11m.03k.12p.09u.11q.03j.12q.09s.11s.03i.12q.09q.11v.03h.12q.09o.1s.03.113.03g.12r.09m.1y.01.111.03f.12r.09k.11k.04.1e.03f.12r.09j.11a.01.1c.03.1f.03d.12s.07r.19.01f.11e.02.1d.01.1f.03c.12t.07o.1f.017.11j.02.1s.03c.12t.07l.1z.0f.12o.03c.12u.078.18.01.114.06.12v.03c.12u.074.11h.02.12z.03c.12u.072.14j.03d.12v.06x.14o.03c.12w.06u.14r.03b.12x.06q.14v.03a.12x.06o.14z.038.12x.047.17h.033.13f.03j.182.02s.13j.03f.183.02r.13l.03d.184.02q.13l.03d.184.02q.13m.03c.185.02p.13n.03b.185.02p.13u.034.185.02p.13u.034.186.02o.13v.011.11.021.186.02o.13w.032.186.02o.142.02w.186.02o.145.02t.186.02o.147.02r.187.02n.14a.02o.188.02m.14b.02n.18a.02k.14d.02l.18d.02h.14g.02i.18j.02b.14h.02h.18l.029.14i.02g.18l.029.14j.02f.18m.028.14k.02e.1fe.02e.17g.21.17y.02d.16w.2l.17z.02c.16w.2l.180.02b.16w.2l.180.02b.16w.2l.181.02a.16w.2l.181.02a.16w.2l.182.029.16w.2l.183.027.16x.2l.183.027.16x.2l.184.026.16x.2l.184.026.16x.2l.185.025.16x.2l.185.025.16x.2l.186.024.16x.2l.186.024.16x.2l.186.024.16x.2l.187.023.16x.2l.138.072.16x.2l.138.072.16x.2l.138.072.16x.2l.138.072.16x.2l.138.072.16x.2l.138.072.16x.2l.138.072.16x.2l.138.072.16x.2l.138.072.16x.2l.138.072.16x.2l.138.072.16x.2l.138.072.16x.2l.138.072.16x.2l.138.072.16x.2l.138.072.16x.2l.18a.020.16x.25c.13j.020.16x.25c.13j.020.16x.25c.13j.020.16x.25c.13j.020.16x.25c.13j.020.16x.25c.13j.020.16x.25c.13j.020.16x.25c.13j.020.16x.25c.13j.020.16x.25c.1cg.25c.1cg.25c.1cg.25c.1cg.25c.1cg.25c.1cg.25c.1cg.25c.1cg.25c.1cg.23t.1dz.2l.1cn1."
+    },
+    {
       nom: 'La trona',
       tema: 'institucions',
       text: 'Un rei presideix el camí assegut a la trona, dalt d\'un pedestal que no deixa passar ningú. Un bon pastís de nata a la cara el fa baixar de cop. També t\'hi pots enfilar amb un castell. I després, un barranc.',

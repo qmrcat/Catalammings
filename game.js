@@ -227,6 +227,27 @@
     try { localStorage.setItem('catalemmings.v1', JSON.stringify(progress)); } catch (e) { /* sense emmagatzematge */ }
   }
 
+  /* ---------- ordre i nivells amagats del menú (només en aquest navegador; levels.js no canvia) ---------- */
+  const ORDER_KEY = 'catalemmings.ordre';
+  let levelOrder = loadOrder();
+  function loadOrder() {
+    let o = null;
+    try { o = JSON.parse(localStorage.getItem(ORDER_KEY)); } catch (e) { /* sense emmagatzematge */ }
+    const valid = i => Number.isInteger(i) && i >= 0 && i < LEVELS.length;
+    const order = (o && Array.isArray(o.order) ? o.order : []).filter((i, k, a) => valid(i) && a.indexOf(i) === k);
+    // els nivells nous de levels.js van al final
+    for (let i = 0; i < LEVELS.length; i++) if (!order.includes(i)) order.push(i);
+    const hidden = (o && Array.isArray(o.hidden) ? o.hidden : []).filter(valid);
+    return { order, hidden: hidden.length < LEVELS.length ? hidden : [] };
+  }
+  function saveOrder() {
+    try { localStorage.setItem(ORDER_KEY, JSON.stringify(levelOrder)); } catch (e) { /* sense emmagatzematge */ }
+  }
+  // nivells del joc visibles, en l'ordre triat (índexs de LEVELS)
+  function playList() { return levelOrder.order.filter(i => !levelOrder.hidden.includes(i)); }
+  function levelLabel(i) { const p = playList().indexOf(i); return p >= 0 ? `Nivell ${p + 1}` : 'Nivell amagat'; }
+  function nextLevel(i) { const l = playList(), p = l.indexOf(i); return p >= 0 ? l[p + 1] : undefined; }
+
   /* =========================================================
      Carregar nivell
      ========================================================= */
@@ -249,7 +270,7 @@
     // habilitat seleccionada per defecte: la primera disponible
     sel = ORDER.find(s => game.skills[s] > 0) || 'pont';
     const nom = L.nom || 'Sense nom';
-    $('#nivellNom').textContent = idx >= 0 ? `Nivell ${idx + 1} · ${nom}`
+    $('#nivellNom').textContent = idx >= 0 ? `${levelLabel(idx)} · ${nom}`
       : origin === 'prova' ? `Prova · ${nom}` : origin === 'editor' ? `Editor · ${nom}` : `Nivell propi · ${nom}`;
     updateSkillButtons();
     updateControls();
@@ -1216,42 +1237,124 @@
   function showMenu() {
     setMode('joc');
     running = false;
-    const cards = LEVELS.map((L, i) => {
+    const list = playList();
+    const cards = list.map(i => {
+      const L = LEVELS[i];
       const best = progress.best[i];
       const done = best !== undefined && best >= L.needed;
       return `<button type="button" class="nivell-card" data-l="${i}">
-        <span class="num">Nivell ${i + 1}</span>
-        <span class="nom">${L.nom}</span>
+        <span class="num">${levelLabel(i)}</span>
+        <span class="nom">${escHtml(L.nom)}</span>
         <span class="obst">${hazardsOf(L)}</span>
         <span class="fet ${done ? '' : 'no'}">${done ? `Superat · rècord ${best} de ${L.total}` : (best !== undefined ? `Intentat · rècord ${best} de ${L.total}` : 'Per jugar')}</span>
       </button>`;
     }).join('');
+    const nHidden = LEVELS.length - list.length;
     capa.innerHTML = `<div class="fitxa ampla">
       <p class="cella">Tria nivell</p>
       <h2>Cap a la llibertat</h2>
-      <p>${LEVELS.length} nivells, de més fàcil a més difícil. Tots estan oberts: pots començar per on vulguis.</p>
-      <div class="propis-menu">
-        <div>
-          <h3>Els meus nivells</h3>
-          <p>Dissenya'n de nous amb l'editor, prova'ls i juga els que ja has desat.</p>
-        </div>
+      <div class="cap-seccio">
+        <h3>Nivells del joc</h3>
+        <button type="button" class="boto-mig" id="btnOrganitza">Organitza</button>
+      </div>
+      <p>${list.length} nivells, de més fàcil a més difícil. Tots estan oberts: pots començar per on vulguis.${nHidden ? ` (${nHidden} amagat${nHidden > 1 ? 's' : ''}.)` : ''}</p>
+      <div class="llista-nivells">${cards}</div>
+      <div class="cap-seccio">
+        <h3>Els meus nivells</h3>
         <div class="botons-fitxa">
-          <button type="button" class="boto-gran" id="btnElsMeus">Els meus nivells</button>
-          <button type="button" class="boto-gran secundari" id="btnObreEditor">Obre l'editor</button>
+          <button type="button" class="boto-mig" id="btnElsMeus">Edita i esborra</button>
+          <button type="button" class="boto-mig principal" id="btnObreEditor">Obre l'editor</button>
         </div>
       </div>
-      <div class="llista-nivells">${cards}</div>
+      <div class="llista-nivells" id="menuPropis"><p class="buit">Carregant…</p></div>
     </div>`;
     capa.hidden = false;
-    capa.querySelectorAll('.nivell-card').forEach(b => b.addEventListener('click', () => { loadLevel(+b.dataset.l); showIntro(); }));
+    capa.querySelectorAll('.nivell-card[data-l]').forEach(b => b.addEventListener('click', () => { loadLevel(+b.dataset.l); showIntro(); }));
+    $('#btnOrganitza').addEventListener('click', () => showOrganize());
     $('#btnElsMeus').addEventListener('click', () => window.CatEditor && window.CatEditor.openList());
     $('#btnObreEditor').addEventListener('click', () => window.CatEditor && window.CatEditor.open());
+    fillOwnLevels();
+  }
+  // els nivells desats amb l'editor, al costat dels del joc
+  function fillOwnLevels() {
+    const box = $('#menuPropis'), CE = window.CatEditor;
+    if (!box) return;
+    if (!CE) { box.innerHTML = '<p class="buit">L\'editor no està disponible.</p>'; return; }
+    CE.listLevels().then(items => {
+      if (!box.isConnected) return;
+      if (!items.length) { box.innerHTML = '<p class="buit">Encara no n\'has fet cap. Obre l\'editor per crear-ne un.</p>'; return; }
+      box.innerHTML = items.map(it => `<button type="button" class="nivell-card" data-id="${escHtml(it.id)}">
+        <span class="num">Nivell propi</span>
+        <span class="nom">${escHtml(it.nom || 'Sense nom')}</span>
+        <span class="obst">${hazardsOf(it)}</span>
+        <span class="fet no">${it.total} catalemmings · cal salvar-ne ${it.needed}</span>
+      </button>`).join('');
+      box.querySelectorAll('[data-id]').forEach(b => b.addEventListener('click', () => CE.play(items.find(x => x.id === b.dataset.id))));
+    }, () => {
+      if (box.isConnected) box.innerHTML = '<p class="buit">No s\'han pogut carregar els teus nivells.</p>';
+    });
+  }
+  // canviar l'ordre i amagar nivells del joc
+  function showOrganize(focus) {
+    const vis = playList();
+    const rows = levelOrder.order.map((i, k, all) => {
+      const L = LEVELS[i], hidden = levelOrder.hidden.includes(i);
+      const nom = escHtml(L.nom);
+      return `<div class="fila-propi${hidden ? ' amagat' : ''}" data-l="${i}">
+        <div class="info"><span class="nom">${nom}</span><span class="detall">${hidden ? 'Amagat' : levelLabel(i)} · número ${i + 1} a levels.js</span></div>
+        <div class="botons-fitxa">
+          <button type="button" class="boto-mig fletxa" data-a="amunt" aria-label="Puja «${nom}»"${k === 0 ? ' disabled' : ''}>↑</button>
+          <button type="button" class="boto-mig fletxa" data-a="avall" aria-label="Baixa «${nom}»"${k === all.length - 1 ? ' disabled' : ''}>↓</button>
+          <button type="button" class="boto-mig" data-a="amaga"${!hidden && vis.length === 1 ? ' disabled title="Ha de quedar almenys un nivell visible"' : ''}>${hidden ? 'Mostra' : 'Amaga'}</button>
+        </div>
+      </div>`;
+    }).join('');
+    const custom = levelOrder.hidden.length || levelOrder.order.some((v, k) => v !== k);
+    capa.innerHTML = `<div class="fitxa ampla">
+      <p class="cella">Tria nivell</p>
+      <h2>Organitza els nivells</h2>
+      <p>Canvia l'ordre amb les fletxes i amaga els nivells que no vulguis veure al menú. Es desa en aquest navegador: el fitxer levels.js no canvia.</p>
+      <div class="llista-propis">${rows}</div>
+      <div class="botons-fitxa">
+        <button type="button" class="boto-gran" id="orgFet">Fet</button>
+        <button type="button" class="boto-gran secundari" id="orgRestaura"${custom ? '' : ' disabled'}>Restaura l'ordre original</button>
+      </div>
+    </div>`;
+    capa.hidden = false;
+    capa.querySelectorAll('.fila-propi').forEach(row => {
+      const i = +row.dataset.l;
+      row.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => {
+        const o = levelOrder.order, k = o.indexOf(i), a = b.dataset.a;
+        if (a === 'amunt' && k > 0) [o[k - 1], o[k]] = [o[k], o[k - 1]];
+        else if (a === 'avall' && k < o.length - 1) [o[k + 1], o[k]] = [o[k], o[k + 1]];
+        else if (a === 'amaga') {
+          const h = levelOrder.hidden;
+          if (h.includes(i)) h.splice(h.indexOf(i), 1);
+          else if (playList().length > 1) h.push(i);
+        }
+        saveOrder();
+        showOrganize({ l: i, a });
+      }));
+    });
+    $('#orgFet').addEventListener('click', showMenu);
+    $('#orgRestaura').addEventListener('click', () => {
+      levelOrder = { order: LEVELS.map((L, i) => i), hidden: [] };
+      saveOrder();
+      showOrganize();
+    });
+    // el focus es queda al botó que s'acaba de fer servir (o al del costat si ara està desactivat)
+    if (focus) {
+      const row = capa.querySelector(`.fila-propi[data-l="${focus.l}"]`);
+      const btn = row && ([...row.querySelectorAll('[data-a]')].find(b => b.dataset.a === focus.a && !b.disabled) || row.querySelector('[data-a]:not(:disabled)'));
+      if (btn) btn.focus({ preventScroll: false });
+    } else $('#orgFet').focus({ preventScroll: true });
   }
   function showIntro() {
     running = false;
     const L = cur;
     const pct = Math.round(L.needed / L.total * 100);
-    const lloc = lvl >= 0 ? `Nivell ${lvl + 1} de ${LEVELS.length}` : curOrigin === 'prova' ? 'Prova de l\'editor' : 'Nivell propi';
+    const pos = playList().indexOf(lvl);
+    const lloc = lvl >= 0 ? (pos >= 0 ? `Nivell ${pos + 1} de ${playList().length}` : 'Nivell amagat') : curOrigin === 'prova' ? 'Prova de l\'editor' : 'Nivell propi';
     const tornar = curOrigin === 'prova' ? 'Torna a l\'editor' : 'Tots els nivells';
     const chips = ORDER.filter(s => (L.skills[s] || 0) > 0).map(s => `<span class="xip">${SKILL_INFO[s].nom} <b>${L.skills[s]}</b></span>`).join('');
     capa.innerHTML = `<div class="fitxa">
@@ -1289,17 +1392,18 @@
       const prev = progress.best[lvl];
       if (prev === undefined || r.saved > prev) { progress.best[lvl] = r.saved; saveProgress(); }
     }
-    const last = lvl < 0 || lvl === LEVELS.length - 1;
+    const next = lvl >= 0 ? nextLevel(lvl) : undefined;
+    const last = next === undefined;
     let title, body;
     if (r.success) {
-      title = lvl === LEVELS.length - 1 ? 'Llibertat! Tots els nivells superats' : 'Llibertat!';
+      title = lvl >= 0 && lvl === playList()[playList().length - 1] ?'Llibertat! Tots els nivells superats' : 'Llibertat!';
       body = (r.saved === r.total ? 'No n\'has perdut ni un. La colla sencera ja és sota l\'estelada.' : 'Prou catalemmings han arribat a l\'estelada.') + ' I la bandera espanyola de casa ja és a terra.';
     } else {
       title = r.timeout ? 'S\'ha acabat el temps' : 'Massa catalemmings enfadats';
       body = lvl >= 0 ? `En calien ${r.needed}. Torna-hi: cada nivell té solució amb les habilitats que dona.` : `En calien ${r.needed}.`;
     }
     capa.innerHTML = `<div class="fitxa ${r.success ? '' : 'fracas'}">
-      <p class="cella">${lvl >= 0 ? `Nivell ${lvl + 1}` : curOrigin === 'prova' ? 'Prova de l\'editor' : 'Nivell propi'} · ${escHtml(L.nom || 'Sense nom')}</p>
+      <p class="cella">${lvl >= 0 ? levelLabel(lvl) : curOrigin === 'prova' ? 'Prova de l\'editor' : 'Nivell propi'} · ${escHtml(L.nom || 'Sense nom')}</p>
       <h2>${title}</h2>
       <p class="resultat-xifra">${r.saved}<small> de ${r.total} lliures · en calien ${r.needed}</small></p>
       <p>${body}</p>
@@ -1311,7 +1415,7 @@
     </div>`;
     capa.hidden = false;
     const seg = $('#btnSeg');
-    if (seg) seg.addEventListener('click', () => { loadLevel(lvl + 1); showIntro(); });
+    if (seg) seg.addEventListener('click', () => { loadLevel(next); showIntro(); });
     $('#btnRep').addEventListener('click', restart);
     $('#btnMenu2').addEventListener('click', backFromLevel);
     sfx(r.success ? 'win' : 'lose');
@@ -1555,7 +1659,7 @@
   };
 
   buildSkillButtons();
-  loadLevel(0);
+  loadLevel(playList()[0]);
   resize();
   showIntro();
   window.addEventListener('resize', resize);
