@@ -8,6 +8,8 @@ Aquí ningú no s'hi fa mal: qui cau de massa alt, l'atrapen o el condemnen, se'
 
 No cal instal·lar res. Obre `index.html` al navegador i ja està.
 
+Al mòbil es juga amb la pantalla en horitzontal: l'escenari omple la pantalla i les habilitats queden a banda i banda.
+
 També es pot publicar tal com és a GitHub Pages (*Settings → Pages → Deploy from a branch → `main` / root*).
 
 ### Controls

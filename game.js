@@ -313,13 +313,22 @@
   /* =========================================================
      Mida del canvas
      ========================================================= */
+  // mòbil en horitzontal (l'escenari omple la pantalla) i mòbil en vertical (cal girar-lo)
+  const mqCompact = window.matchMedia('(orientation: landscape) and (max-height: 540px)');
+  const mqGira = window.matchMedia('(orientation: portrait) and (max-width: 700px) and (pointer: coarse)');
+
   function resize() {
     const wrap = $('#scroll');
-    const avail = wrap.clientWidth;
-    let s = avail / W;
-    const maxH = window.innerHeight * 0.64;
-    if (H * s > maxH) s = maxH / H;
-    s = Math.max(s, 1.35);
+    let s;
+    if (mqCompact.matches) {
+      // l'escenari sencer ha de cabre entre les dues columnes d'habilitats
+      s = Math.min(wrap.parentElement.clientWidth / W, $('#escenari').clientHeight / H);
+    } else {
+      s = wrap.clientWidth / W;
+      const maxH = window.innerHeight * 0.7;
+      if (H * s > maxH) s = maxH / H;
+      s = Math.max(s, 1.35);
+    }
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     cv.style.width = Math.round(W * s) + 'px';
     cv.style.height = Math.round(H * s) + 'px';
@@ -1155,22 +1164,47 @@
     }
   }
   function selectSkill(s) {
+    if (game && !skillVisible(s)) return;
     sel = s;
     ensureAudio();
     updateSkillButtons();
     setStatus(null);
   }
+  // només es veuen les habilitats que encara es poden fer servir;
+  // «Blocar» es queda mentre hi hagi algun blocador per deixar anar
+  function skillVisible(s) {
+    return game.skills[s] > 0 || (s === 'blocar' && game.cats.some(c => c.state === 'block'));
+  }
+  let habKey = '';
   function updateSkillButtons() {
     if (!game) return;
+    const vis = ORDER.filter(skillVisible);
+    // si l'habilitat triada s'ha acabat, passa a la primera que en quedi
+    if (vis.length && !vis.includes(sel)) { sel = vis[0]; setStatus(null); }
     for (const s of ORDER) {
       const b = document.getElementById('hab-' + s);
       if (!b) continue;
       const n = game.skills[s];
       b.querySelector('.compte').textContent = n;
       b.classList.toggle('buida', n <= 0);
+      b.hidden = !vis.includes(s);
       b.setAttribute('aria-pressed', s === sel ? 'true' : 'false');
       b.setAttribute('aria-label', `${SKILL_INFO[s].nom}: en queden ${n}`);
     }
+    const key = (mqCompact.matches ? 'c:' : 'n:') + vis.join(',');
+    if (key !== habKey) { habKey = key; layoutSkills(vis); }
+  }
+  // a l'ordinador, una fila sota l'escenari; al mòbil en horitzontal, repartides a banda i banda
+  function layoutSkills(vis) {
+    const box = $('#habilitats'), esq = $('#habEsq'), dre = $('#habDre');
+    const half = Math.ceil(vis.length / 2);
+    const focused = document.activeElement;
+    for (const s of ORDER) {
+      const b = document.getElementById('hab-' + s);
+      const k = vis.indexOf(s);
+      (!mqCompact.matches || k < 0 ? box : k < half ? esq : dre).append(b);
+    }
+    if (focused && focused.classList.contains('hab') && !focused.hidden) focused.focus({ preventScroll: true });
   }
   function updateControls() {
     $('#vRitme').textContent = game.rate;
@@ -1207,7 +1241,7 @@
   let capaRO = null;
   function fitCapa() {
     const card = capa.firstElementChild;
-    if (capa.hidden || !card) { escenari.style.minHeight = ''; return; }
+    if (capa.hidden || !card || mqCompact.matches) { escenari.style.minHeight = ''; return; }
     const need = Math.ceil(card.getBoundingClientRect().height) + 40; // marges de la capa i vora de l'escenari
     escenari.style.minHeight = need > cv.offsetHeight + 6 ? need + 'px' : '';
   }
@@ -1488,11 +1522,32 @@
     else showMenu();
   }
   function setMode(m) {
+    const changed = mode !== m;
     mode = m;
     document.body.classList.toggle('mode-editor', m === 'editor');
     if (m === 'editor') { running = false; capa.hidden = true; }
+    else { cv.style.touchAction = ''; cv.style.cursor = ''; }
     $('#btnEditor').setAttribute('aria-pressed', m === 'editor' ? 'true' : 'false');
+    if (changed) resize();
   }
+
+  /* ---------- orientació del mòbil ---------- */
+  function updateOrientation() {
+    $('#gira').hidden = !mqGira.matches;
+    if (mqGira.matches && running && !paused) { paused = true; updateControls(); }
+  }
+  for (const mq of [mqCompact, mqGira]) {
+    const f = () => { updateOrientation(); resize(); fitCapa(); };
+    if (mq.addEventListener) mq.addEventListener('change', f); else mq.addListener(f);
+  }
+  // on es pugui, pantalla completa i horitzontal encara que el mòbil tingui el gir blocat
+  const btnPantalla = $('#btnPantalla');
+  btnPantalla.hidden = !(document.documentElement.requestFullscreen && screen.orientation && screen.orientation.lock);
+  btnPantalla.addEventListener('click', () => {
+    document.documentElement.requestFullscreen()
+      .then(() => screen.orientation.lock('landscape'))
+      .catch(() => { btnPantalla.hidden = true; });
+  });
   function escHtml(t) {
     return String(t).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   }
@@ -1655,12 +1710,14 @@
     load(i) { loadLevel(i); start(); },
     steps(n) { for (let i = 0; i < n; i++) { if (!game.over) game.step(); updateFlag(); } drainEvents(); },
     flag: () => flagFall,
+    frame() { render(); updateHud(); updateSkillButtons(); },
     game: () => game
   };
 
   buildSkillButtons();
   loadLevel(playList()[0]);
   resize();
+  updateOrientation();
   showIntro();
   window.addEventListener('resize', resize);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => render());

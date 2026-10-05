@@ -1,4 +1,5 @@
-/* Layout: consola de joc vertical — escenari a dalt, marcador i botonera de pixel art a sota, amplada màxima 1120px.
+/* Layout: consola de joc vertical — escenari a dalt amb el marcador i la pausa superposats, botonera de pixel art a sota,
+   amplada màxima 1120px. En un mòbil en horitzontal l'escenari omple la pantalla i les habilitats van a banda i banda.
    Un sol aspecte (nit de Diada), triat a propòsit: el món del joc és fosc tant si el sistema és clar com fosc. */
 :root {
   --nit: #0a1430;
@@ -94,7 +95,10 @@ h1 {
   border-radius: 8px;
   background: #060c20;
   overflow: hidden;
+  display: flex;
 }
+.vista { position: relative; flex: 1 1 auto; min-width: 0; }
+.habs-costat { display: none; }
 .scroll {
   overflow-x: auto;
   overflow-y: hidden;
@@ -219,18 +223,26 @@ h1 {
 .nivell-card .fet { font-family: var(--display); font-size: 13px; color: var(--verd); }
 .nivell-card .fet.no { color: var(--boira); opacity: 0.7; }
 
-/* ---------- marcador ---------- */
+/* ---------- marcador (superposat a dalt de l'escenari) ---------- */
 .marcador {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  right: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 6px;
+  pointer-events: none;
 }
 .xifra {
-  background: var(--panell);
+  background: rgba(10, 20, 48, 0.8);
+  border: 1px solid var(--linia);
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 1px 8px;
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
+  gap: 6px;
   min-width: 0;
 }
 .etiqueta {
@@ -245,13 +257,16 @@ h1 {
   line-height: 1.15;
   font-variant-numeric: tabular-nums;
 }
+.marcador .etiqueta { font-size: 10px; }
+.marcador .valor { font-size: 17px; line-height: 1.3; white-space: nowrap; }
 .lliures .valor { color: var(--groc); }
 .valor.enfadats { color: var(--vermell-clar); }
 .barra {
   position: relative;
   display: block;
+  align-self: center;
+  width: 56px;
   height: 5px;
-  margin-top: 4px;
   background: var(--panell-2);
   border-radius: 3px;
   overflow: hidden;
@@ -259,13 +274,25 @@ h1 {
 .barra span { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--groc); transition: width 0.2s; }
 .barra i { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--paper); }
 
+/* ---------- pausa (superposada a baix a l'esquerra de l'escenari) ---------- */
+.boto-control.pausa-flotant {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  background: rgba(10, 20, 48, 0.8);
+}
+.boto-control.pausa-flotant[aria-pressed="true"] { background: var(--blau); }
+
 /* ---------- habilitats ---------- */
 .habilitats {
-  display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  min-height: 78px;
 }
+.hab[hidden] { display: none; }
 .hab {
+  flex: 0 1 104px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -380,12 +407,11 @@ h1 {
 
 /* ---------- mòbil ---------- */
 @media (max-width: 760px) {
-  .habilitats { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .habilitats { gap: 6px; }
+  .hab { flex-basis: 64px; }
   .hab .hab-nom { font-size: 12px; }
-  .marcador { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .marcador .lliures { grid-column: span 4; order: -1; }
-  .xifra { padding: 6px 8px; }
-  .valor { font-size: 19px; }
+  .marcador .valor { font-size: 15px; }
+  .xifra { padding: 0 6px; gap: 4px; }
   .capa { padding: 10px; }
   .fitxa { padding: 14px; gap: 10px; }
   .fets { font-size: 15px; gap: 4px 14px; }
@@ -396,7 +422,8 @@ h1 {
 /* ---------- editor de nivells ---------- */
 .editor { display: none; flex-direction: column; gap: 12px; }
 .mode-editor .editor { display: flex; }
-.mode-editor .marcador, .mode-editor .habilitats, .mode-editor .controls,
+.mode-editor .marcador, .mode-editor .pausa-flotant, .mode-editor .habs-costat,
+.mode-editor .habilitats, .mode-editor .controls,
 .mode-editor .estat, .mode-editor .ajuda { display: none; }
 .boto-pla[aria-pressed="true"] { background: var(--groc); border-color: var(--groc); color: var(--groc-fosc); }
 
@@ -552,6 +579,76 @@ p.info-obj b { color: var(--groc); font-weight: 700; }
   .eina { font-size: 13px; padding: 4px 8px; }
 }
 
+/* ---------- mòbil en horitzontal: l'escenari omple la pantalla ---------- */
+@media (orientation: landscape) and (max-height: 540px) {
+  body { margin: 0; padding: 0 0 24px; }
+  .app { max-width: none; gap: 10px; }
+  .app > :not(.escenari) { margin-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right)); }
+  .escenari {
+    order: -1;
+    height: 100vh;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+  }
+  .vista { display: flex; align-items: center; justify-content: center; }
+  .scroll { overflow: hidden; }
+  #joc { touch-action: pan-y; }
+  .habilitats { display: none; }
+  .habs-costat {
+    flex: none;
+    width: 58px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px;
+  }
+  .habs-costat .hab { flex: 0 1 54px; padding: 8px 2px 0; justify-content: center; }
+  .habs-costat .hab canvas { width: 32px; height: 32px; }
+  .habs-costat .hab .hab-nom, .habs-costat .hab .tecla { display: none; }
+  .habs-costat .hab .compte { top: -1px; right: 2px; font-size: 13px; text-shadow: 1px 1px 0 var(--panell); }
+  .habs-costat .hab[aria-pressed="true"] { transform: none; box-shadow: 0 0 0 2px var(--vermell); }
+  .habs-costat .hab[aria-pressed="true"] .compte { text-shadow: none; }
+  .marcador { top: 3px; gap: 3px 4px; }
+  .marcador .valor { font-size: 14px; }
+  .marcador .etiqueta { font-size: 9px; letter-spacing: 0.06em; }
+  .xifra { padding: 0 5px; gap: 4px; }
+  .barra { width: 36px; }
+  .boto-control.pausa-flotant { left: 4px; bottom: 4px; padding: 6px 10px; }
+  .capa { padding: 8px; }
+  kbd { display: none; }
+}
+
+/* ---------- mòbil en vertical: cal girar-lo ---------- */
+.gira {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  padding: 24px;
+  background: var(--nit);
+  text-align: center;
+}
+.gira[hidden] { display: none; }
+.gira-cos { margin: auto; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.gira h2 { font-family: var(--display); font-size: 28px; margin: 0; color: var(--groc); text-shadow: 3px 3px 0 var(--vermell); }
+.gira p { margin: 0; color: var(--boira); max-width: 30ch; }
+.gira-icona {
+  width: 44px;
+  height: 76px;
+  border: 4px solid var(--paper);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  animation: gira 2.4s ease-in-out infinite;
+}
+@keyframes gira {
+  0%, 20% { transform: rotate(0); }
+  60%, 100% { transform: rotate(-90deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .gira-icona { animation: none; transform: rotate(-90deg); }
   .hab, .barra span { transition: none; }
 }

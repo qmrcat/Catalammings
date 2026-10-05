@@ -27,25 +27,29 @@
   </header>
 
   <section class="escenari" id="escenari" aria-label="Escenari del joc">
-    <div class="scroll" id="scroll">
-      <canvas id="joc" aria-label="Nivell del joc. Clica un catalemming per donar-li l'habilitat triada."></canvas>
+    <div class="habs-costat" id="habEsq" role="toolbar" aria-label="Habilitats (esquerra)"></div>
+    <div class="vista">
+      <div class="scroll" id="scroll">
+        <canvas id="joc" aria-label="Nivell del joc. Clica un catalemming per donar-li l'habilitat triada."></canvas>
+      </div>
+      <div class="marcador" id="marcador">
+        <div class="xifra"><span class="etiqueta">Fora</span><span class="valor" id="vFora">0/0</span></div>
+        <div class="xifra"><span class="etiqueta">A dins</span><span class="valor" id="vDins">0</span></div>
+        <div class="xifra lliures">
+          <span class="etiqueta">Lliures</span>
+          <span class="valor" id="vLliures">0</span>
+          <span class="barra" aria-hidden="true"><span id="barraLliures"></span><i id="marcaCal"></i></span>
+        </div>
+        <div class="xifra"><span class="etiqueta">Enfadats</span><span class="valor enfadats" id="vEnfadats">0</span></div>
+        <div class="xifra"><span class="etiqueta">Temps</span><span class="valor" id="vTemps">0:00</span></div>
+      </div>
+      <button type="button" id="btnPausa" class="boto-control pausa-flotant" aria-pressed="false">Pausa <kbd>P</kbd></button>
     </div>
+    <div class="habs-costat" id="habDre" role="toolbar" aria-label="Habilitats (dreta)"></div>
     <div class="capa" id="capa" hidden></div>
   </section>
 
   <section class="editor" id="editor" aria-label="Editor de nivells"></section>
-
-  <div class="marcador" id="marcador">
-    <div class="xifra"><span class="etiqueta">Fora</span><span class="valor" id="vFora">0/0</span></div>
-    <div class="xifra"><span class="etiqueta">A dins</span><span class="valor" id="vDins">0</span></div>
-    <div class="xifra lliures">
-      <span class="etiqueta">Lliures</span>
-      <span class="valor" id="vLliures">0</span>
-      <span class="barra" aria-hidden="true"><span id="barraLliures"></span><i id="marcaCal"></i></span>
-    </div>
-    <div class="xifra"><span class="etiqueta">Enfadats</span><span class="valor enfadats" id="vEnfadats">0</span></div>
-    <div class="xifra"><span class="etiqueta">Temps</span><span class="valor" id="vTemps">0:00</span></div>
-  </div>
 
   <div class="habilitats" id="habilitats" role="toolbar" aria-label="Habilitats"></div>
 
@@ -56,7 +60,6 @@
       <span class="valor" id="vRitme">30</span>
       <button type="button" id="ritmeMes" class="boto-ritme" aria-label="Més ràpid">+</button>
     </div>
-    <button type="button" id="btnPausa" class="boto-control" aria-pressed="false">Pausa <kbd>P</kbd></button>
     <button type="button" id="btnRapid" class="boto-control" aria-pressed="false">Ràpid ×3 <kbd>F</kbd></button>
     <button type="button" id="btnReinicia" class="boto-control">Reinicia <kbd>R</kbd></button>
     <button type="button" id="btnRetirada" class="boto-control perill">Tots a casa</button>
@@ -82,6 +85,15 @@
       <p>Tecles: <kbd>1</kbd>–<kbd>9</kbd> i <kbd>0</kbd> habilitats, <kbd>P</kbd> pausa, <kbd>F</kbd> ràpid, <kbd>R</kbd> reinicia, <kbd>−</kbd>/<kbd>+</kbd> ritme.</p>
     </div>
   </details>
+</div>
+
+<div class="gira" id="gira" hidden>
+  <div class="gira-cos">
+    <div class="gira-icona" aria-hidden="true"></div>
+    <h2>Gira el mòbil</h2>
+    <p>Catalemmings es juga amb la pantalla en horitzontal.</p>
+    <button type="button" class="boto-gran" id="btnPantalla" hidden>Pantalla completa</button>
+  </div>
 </div>
 
 <script src="engine.js"></script>
